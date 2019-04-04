@@ -7,7 +7,6 @@ from .connection import get, get_with_session, post_with_session, authenticate
 from .generator import (
     generate_hidden_params,
     generate_issues,
-    find_board_id,
     parse_MyPage
 )
 
@@ -83,9 +82,15 @@ def list_projects():
 
 def select_project(name):
     url = BASE_URL + "main/MyPage.aspx"
-
     html = get_with_session(url)
-    board_id = find_board_id(html, name)
+    projects = parse_MyPage(html)
+
+    for project in projects:
+        if project.name == name:
+            board_id = project.id
+            break
+    else:
+        sys.exit("その名前のプロジェクトは存在しません")
 
     status = read_json(STATUS_PATH)
     status["paramators"]["board_id"] = board_id
