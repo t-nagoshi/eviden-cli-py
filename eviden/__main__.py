@@ -57,6 +57,7 @@ def main():
     )
 
     option_parser = argparse.ArgumentParser(parents=[command_parser])
+    option_parser.add_argument("--baseurl", default="https://etrack.timedia.co.jp/EasyTracker/")
     option_parser.add_argument("option", nargs="*")
 
     args = option_parser.parse_args()
@@ -67,19 +68,19 @@ def main():
         if args.command in ["setup", "reset"]:
             core.setup()
         elif args.command == "list":
-            core.list_projects()
+            core.list_projects(args.baseurl)
         else:
-            core.list_issues()
+            core.list_issues(args.baseurl)
     elif args.command == "login":
         user_id = validator.login_validation()
         password = getpass("passwordを入力してください:")
-        core.login(user_id, password)
+        core.login(args.baseurl, user_id, password)
     elif args.command == "select":
         name = validator.select_project_validation()
-        core.select_project(name)
+        core.select_project(args.baseurl, name)
     elif args.command == "post":
         title, text = validator.post_issue_validation()
-        core.post_issue(title, text)
+        core.post_issue(args.baseurl, title, text)
 
 
 if __name__ == "__main__":

@@ -58,24 +58,20 @@ def setup():
     write_json(data, STATUS_PATH)
 
 
-def login(user_id, password):
-    URL = BASE_URL + "Login.aspx"
-
-    html = get(URL)
+def login(baseurl, user_id, password):
+    html = get(baseurl + "Login.aspx")
 
     data = generate_hidden_params(html, request="LOGIN")
     data["textBoxId"] = user_id
     data["textBoxPassword"] = password
 
-    authenticate(URL, data)
+    authenticate(baseurl, data)
 
     print(f"ログインしました ID: {user_id}")
 
 
-def list_projects():
-    URL = BASE_URL + "main/MyPage.aspx"
-
-    html = get_with_session(URL)
+def list_projects(baseurl):
+    html = get_with_session(baseurl + "main/MyPage.aspx")
 
     project_info = generate_project_info(html)
 
@@ -83,10 +79,8 @@ def list_projects():
         print(f"{name}@{group}")
 
 
-def select_project(name):
-    url = BASE_URL + "main/MyPage.aspx"
-
-    html = get_with_session(url)
+def select_project(baseurl, name):
+    html = get_with_session(baseurl + "main/MyPage.aspx")
     board_id = find_board_id(html, name)
 
     status = read_json(STATUS_PATH)
@@ -96,14 +90,12 @@ def select_project(name):
     list_issues(board_id=board_id)
 
 
-def list_issues(board_id=None):
+def list_issues(baseurl, board_id=None):
     if board_id is None:
         status = read_json(STATUS_PATH)
         board_id = status["paramators"]["board_id"]
 
-    URL = BASE_URL + f"board/IssueList.aspx?board_id={board_id}"
-
-    html = get_with_session(URL)
+    html = get_with_session(baseurl + f"board/IssueList.aspx?board_id={board_id}")
     __board_id_validation(html)
 
     issues = generate_issues(html)
@@ -112,7 +104,7 @@ def list_issues(board_id=None):
         print(f"No. {no}: {name}\nステータス: {status_}, 重要度: {priority}, タイプ: {type_}, アサイン: {asign}")
 
 
-def post_issue(title, text, status="未着手", priority=1, category="デフォルト",
+def post_issue(baseurl, title, text, status="未着手", priority=1, category="デフォルト",
                type_="タスク", readonly="", secret="on", assign_id="", date="", remainder_mail=""):
     """
     argments:
@@ -133,8 +125,7 @@ def post_issue(title, text, status="未着手", priority=1, category="デフォ�
     status_ = read_json(STATUS_PATH)
     board_id = status_["paramators"]["board_id"]
 
-    PRE_URL = BASE_URL + f"Board/AddIssuePre.aspx?board_id={board_id}"
-
+    PRE_URL = baseurl + f"Board/AddIssuePre.aspx?board_id={board_id}"
     pre_html = get_with_session(PRE_URL)
     __board_id_validation(pre_html)
     data = generate_hidden_params(pre_html)
@@ -144,8 +135,6 @@ def post_issue(title, text, status="未着手", priority=1, category="デフォ�
         data[param] = d
 
     html = post_with_session(PRE_URL, data=data)
-
-    POST_URL = BASE_URL + f"Board/AddIssue.aspx?board_id={board_id}"
 
     data.update(generate_hidden_params(html))
 
@@ -157,5 +146,6 @@ def post_issue(title, text, status="未着手", priority=1, category="デフォ�
     for param in POST_FILE_PARAMS:
         files[param] = ("", "", "application/octet-stream")
 
+    POST_URL = baseurl + f"Board/AddIssue.aspx?board_id={board_id}"
     post_with_session(POST_URL, data=data, files=files)
     list_issues(board_id=board_id)
