@@ -10,17 +10,6 @@ class Validator:
     def __init__(self, option):
         self.option = option
 
-    def login_validation(self):
-        if len(self.option) > 1:
-            print(self.NOT_REQUIRED_ARGUMENTS_MESSAGE)
-
-        try:
-            user_id = self.option[0]
-        except IndexError:
-            sys.exit("ユーザIDが指定されていません\nusage: cli.py login <user_id>")
-
-        return user_id
-
     def no_args_validation(self):
         if len(self.option) != 0:
             print(self.NOT_REQUIRED_ARGUMENTS_MESSAGE)
@@ -71,7 +60,11 @@ def main():
         else:
             core.list_issues()
     elif args.command == "login":
-        user_id = validator.login_validation()
+        if args.option:
+            user_id = args.option[0]
+        else:
+            user_id = input('ログインID またはメールアドレスを入力してください: ')
+
         password = getpass("passwordを入力してください:")
         core.login(user_id, password)
     elif args.command == "select":
