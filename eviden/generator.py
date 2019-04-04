@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import sys
+from typing import Generator, NamedTuple
 
 HIDDEN_PARAMS = [
     "__VIEWSTATE",
@@ -62,3 +63,19 @@ def find_board_id(html, name):
             return project_name.a.get("href").split("=")[1]
 
     sys.exit("その名前のプロジェクトは存在しません")
+
+
+Project = NamedTuple('Project', [('id', str),
+                                 ('name', str),
+                                 ('group', str)])
+
+
+def parse_MyPage(html: str) -> Generator[Project, None, None]:
+    root = BeautifulSoup(html, 'html.parser')
+    table = root.find(attrs={'id': '_ctl0_ContentPlaceHolder1_gridList'})
+    rows = table.find_all('tr')[1:]  # skip a table header row
+
+    for row in rows:
+        group, name, last_updated, description, status = row.find_all('td', recursive=False)
+        project_id = name.a.get('href').split('=')[-1]
+        yield Project(project_id, name.text, group.text)

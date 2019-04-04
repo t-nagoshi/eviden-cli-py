@@ -7,6 +7,7 @@ from eviden.generator import (
     generate_issues,
     generate_project_info,
     find_board_id,
+    parse_MyPage,
     HIDDEN_PARAMS
 )
 
@@ -71,9 +72,10 @@ generate_issues_html = """
 project_info_tr_html = """
 <tr>
     <td>{0[0]}</td>
-    <td><a href="#">{0[1]}</a></td>
-    <td>{0[2]}</td>
+    <td><a href="https://eviden.example.com/IssueList.aspx?board_id={0[2]}">{0[1]}</a></td>
     <td>{0[3]}</td>
+    <td>{0[4]}</td>
+    <td>{0[5]}</td>
 </tr>
 """
 
@@ -142,7 +144,7 @@ class GeneratorTest(unittest.TestCase):
     def test_generate_project_info(self):
         N = random.randint(1, 50)
 
-        random_rows = [[randomstr(40) for _ in range(4)] for __ in range(N)]
+        random_rows = [[randomstr(40) for _ in range(6)] for __ in range(N)]
         rows = [project_info_tr_html.format(random_rows[i]) for i in range(N)]
 
         html = generate_project_info_html.format("".join(rows))
@@ -174,6 +176,20 @@ class GeneratorTest(unittest.TestCase):
         data = find_board_id(html, name)
 
         self.assertEqual(data, board_id)
+
+    def test_parse_MyPage(self):
+        N = random.randint(1, 50)
+
+        random_rows = [[randomstr(40) for _ in range(6)] for __ in range(N)]
+        rows = [project_info_tr_html.format(random_rows[i]) for i in range(N)]
+
+        html = generate_project_info_html.format("".join(rows))
+
+        projects = parse_MyPage(html)
+        for i, project in enumerate(projects):
+            self.assertEqual(project.id, random_rows[i][2])
+            self.assertEqual(project.name, random_rows[i][1])
+            self.assertEqual(project.group, random_rows[i][0])
 
 
 if __name__ == "__main__":

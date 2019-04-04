@@ -6,9 +6,9 @@ from .jsonio import STATUS_PATH, read_json, write_json
 from .connection import get, get_with_session, post_with_session, authenticate
 from .generator import (
     generate_hidden_params,
-    generate_project_info,
     generate_issues,
-    find_board_id
+    find_board_id,
+    parse_MyPage
 )
 
 BASE_URL = "https://etrack.timedia.co.jp/EasyTracker/"
@@ -74,13 +74,11 @@ def login(user_id, password):
 
 def list_projects():
     URL = BASE_URL + "main/MyPage.aspx"
-
     html = get_with_session(URL)
+    projects = parse_MyPage(html)
 
-    project_info = generate_project_info(html)
-
-    for (group, name) in project_info:
-        print(f"{name}@{group}")
+    for project in projects:
+        print(f"{project.name}@{project.group}")
 
 
 def select_project(name):
