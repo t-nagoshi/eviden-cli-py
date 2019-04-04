@@ -5,8 +5,6 @@ import unittest
 from eviden.generator import (
     generate_hidden_params,
     generate_issues,
-    generate_project_info,
-    find_board_id,
     parse_MyPage,
     HIDDEN_PARAMS
 )
@@ -141,19 +139,6 @@ class GeneratorTest(unittest.TestCase):
 
         self.assertEqual(data, expected)
 
-    def test_generate_project_info(self):
-        N = random.randint(1, 50)
-
-        random_rows = [[randomstr(40) for _ in range(6)] for __ in range(N)]
-        rows = [project_info_tr_html.format(random_rows[i]) for i in range(N)]
-
-        html = generate_project_info_html.format("".join(rows))
-
-        data = generate_project_info(html)
-        expected = [random_rows[i][0:2] for i in range(N)]
-
-        self.assertEqual(data, expected)
-
     def test_generate_issues(self):
         N = random.randint(1, 50)
         random_rows = [[randomstr(40) for _ in range(7)] for __ in range(N)]
@@ -163,19 +148,6 @@ class GeneratorTest(unittest.TestCase):
         data = generate_issues(html)
 
         self.assertEqual(data, random_rows)
-
-    def test_find_board_id(self):
-        N = random.randint(1, 50)
-        pares = [[randomstr(40) for _ in range(3)] for __ in range(N)]
-        rows = [find_board_id_td_html.format(pares[i]) for i in range(N)]
-
-        html = find_board_id_html.format("".join(rows))
-
-        M = random.randint(0, N - 1)
-        _, board_id, name = pares[M]
-        data = find_board_id(html, name)
-
-        self.assertEqual(data, board_id)
 
     def test_parse_MyPage(self):
         N = random.randint(1, 50)
