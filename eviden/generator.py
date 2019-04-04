@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-import sys
+from typing import Generator, NamedTuple
 
 HIDDEN_PARAMS = [
     "__VIEWSTATE",
@@ -24,18 +24,6 @@ def generate_hidden_params(html, request="POST"):
     return data
 
 
-def generate_project_info(html):
-    soup = BeautifulSoup(html, "html.parser")
-
-    TABLE_ID = "_ctl0_ContentPlaceHolder1_gridList"
-    table = soup.find(attrs={"id": TABLE_ID})
-
-    rows = table.find_all("tr")[1:]
-    project_info = [list(map(__to_text, row.find_all("td")[:2])) for row in rows]
-
-    return project_info
-
-
 def generate_issues(html):
     soup = BeautifulSoup(html, "html.parser")
 
@@ -49,16 +37,17 @@ def generate_issues(html):
     return issues
 
 
-def find_board_id(html, name):
-    soup = BeautifulSoup(html, "html.parser")
+Project = NamedTuple('Project', [('id', str),
+                                 ('name', str),
+                                 ('group', str)])
 
-    TABLE_ID = "_ctl0_ContentPlaceHolder1_gridList"
-    table = soup.find(attrs={"id": TABLE_ID})
-    rows = table.find_all("tr")[1:]
+
+def parse_MyPage(html: str) -> Generator[Project, None, None]:
+    root = BeautifulSoup(html, 'html.parser')
+    table = root.find(attrs={'id': '_ctl0_ContentPlaceHolder1_gridList'})
+    rows = table.find_all('tr')[1:]  # skip a table header row
 
     for row in rows:
-        project_name = row.find_all("td")[1]
-        if project_name.text == name:
-            return project_name.a.get("href").split("=")[1]
-
-    sys.exit("その名前のプロジェクトは存在しません")
+        group, name, last_updated, description, status = row.find_all('td', recursive=False)
+        project_id = name.a.get('href').split('=')[-1]
+        yield Project(project_id, name.text, group.text)

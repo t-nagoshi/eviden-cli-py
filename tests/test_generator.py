@@ -5,8 +5,7 @@ import unittest
 from eviden.generator import (
     generate_hidden_params,
     generate_issues,
-    generate_project_info,
-    find_board_id,
+    parse_MyPage,
     HIDDEN_PARAMS
 )
 
@@ -71,9 +70,10 @@ generate_issues_html = """
 project_info_tr_html = """
 <tr>
     <td>{0[0]}</td>
-    <td><a href="#">{0[1]}</a></td>
-    <td>{0[2]}</td>
+    <td><a href="https://eviden.example.com/IssueList.aspx?board_id={0[2]}">{0[1]}</a></td>
     <td>{0[3]}</td>
+    <td>{0[4]}</td>
+    <td>{0[5]}</td>
 </tr>
 """
 
@@ -139,19 +139,6 @@ class GeneratorTest(unittest.TestCase):
 
         self.assertEqual(data, expected)
 
-    def test_generate_project_info(self):
-        N = random.randint(1, 50)
-
-        random_rows = [[randomstr(40) for _ in range(4)] for __ in range(N)]
-        rows = [project_info_tr_html.format(random_rows[i]) for i in range(N)]
-
-        html = generate_project_info_html.format("".join(rows))
-
-        data = generate_project_info(html)
-        expected = [random_rows[i][0:2] for i in range(N)]
-
-        self.assertEqual(data, expected)
-
     def test_generate_issues(self):
         N = random.randint(1, 50)
         random_rows = [[randomstr(40) for _ in range(7)] for __ in range(N)]
@@ -162,18 +149,19 @@ class GeneratorTest(unittest.TestCase):
 
         self.assertEqual(data, random_rows)
 
-    def test_find_board_id(self):
+    def test_parse_MyPage(self):
         N = random.randint(1, 50)
-        pares = [[randomstr(40) for _ in range(3)] for __ in range(N)]
-        rows = [find_board_id_td_html.format(pares[i]) for i in range(N)]
 
-        html = find_board_id_html.format("".join(rows))
+        random_rows = [[randomstr(40) for _ in range(6)] for __ in range(N)]
+        rows = [project_info_tr_html.format(random_rows[i]) for i in range(N)]
 
-        M = random.randint(0, N - 1)
-        _, board_id, name = pares[M]
-        data = find_board_id(html, name)
+        html = generate_project_info_html.format("".join(rows))
 
-        self.assertEqual(data, board_id)
+        projects = parse_MyPage(html)
+        for i, project in enumerate(projects):
+            self.assertEqual(project.id, random_rows[i][2])
+            self.assertEqual(project.name, random_rows[i][1])
+            self.assertEqual(project.group, random_rows[i][0])
 
 
 if __name__ == "__main__":
